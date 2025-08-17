@@ -1,0 +1,26 @@
+# PyCharm
+/.idea/workspace.xml
+/.idea/tasks.xml
+/.idea/dictionaries/
+/.idea/usage.statistics.xml
+
+# Dossiers temporaires de build
+/build/
+/dist/
+/AppDir/usr
+
+# Fichiers générés par PyInstaller
+*.spec
+*.toc
+*.pkg
+*.zip
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# AppImage généré
+*.AppImage
+
+# Outils locaux
+/appimagetool
