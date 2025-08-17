@@ -30,7 +30,7 @@ fi
 
 # 5. Télécharge appimagetool si absent
 if [ ! -f appimagetool ]; then
-  wget https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage -O appimagetool
+  wget https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
   chmod +x appimagetool
 fi
 
