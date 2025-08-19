@@ -1,9 +1,9 @@
-name: Build AppImage
+name: Build & Test AppImage
 
 on:
   push:
     tags:
-      - "v*.*.*" # Lance uniquement sur push de tag versionné (ex: v1.0.0)
+      - "v*.*.*"  # Lance uniquement sur push de tag versionné (ex: v1.0.0)
   workflow_dispatch:
 
 jobs:
@@ -36,8 +36,28 @@ jobs:
           name: scxctl_gui
           path: ./*.AppImage
 
-  release:
+  test:
     needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: scxctl_gui
+          path: ./test
+
+      - name: Install test dependencies
+        run: sudo apt-get update && sudo apt-get install -y xvfb libfuse2
+
+      - name: Test AppImage launch
+        run: |
+          chmod +x ./test/*.AppImage
+          # On lance dans un environnement X virtuel pour PyQt6
+          xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24" ./test/*.AppImage --help || (echo "❌ Lancement échoué" && exit 1)
+          echo "✅ Test réussi — l’AppImage se lance."
+
+  release:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact
