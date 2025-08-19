@@ -24,3 +24,6 @@ __pycache__/
 
 # Outils locaux
 /appimagetool
+/.idea/misc.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/vcs.xml
