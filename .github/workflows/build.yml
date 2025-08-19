@@ -3,8 +3,8 @@ name: Build AppImage
 on:
   push:
     tags:
-      - "v*.*.*"   # Se lance uniquement lors du push d'un tag versionné (ex: v1.0.0)
-  workflow_dispatch:  # Permet de lancer manuellement si besoin
+      - "v*.*.*" # Lance uniquement sur push de tag versionné (ex: v1.0.0)
+  workflow_dispatch:
 
 jobs:
   build:
@@ -46,7 +46,6 @@ jobs:
           name: scxctl_gui
           path: ./release
 
-      # Cette étape empêche la release si le workflow est lancé manuellement sans tag
       - name: Vérifier la présence d’un tag
         run: |
           if [[ "${GITHUB_REF}" != refs/tags/* ]]; then
