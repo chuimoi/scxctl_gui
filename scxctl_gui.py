@@ -49,7 +49,6 @@ class SCXCtlGUI(QWidget):
         btn_layout.addWidget(self.list_btn)
         layout.addLayout(btn_layout)
 
-        layout.addWidget(QLabel("Sortie de scxctl :"))
         layout.addWidget(self.output)
 
         self.setLayout(layout)
