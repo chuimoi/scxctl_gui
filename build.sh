@@ -5,14 +5,23 @@ APP=scxctl_gui
 ICON=scxctl_gui.png
 PYFILE=scxctl_gui.py
 
-# 1. Compile avec nom forcé
+# 1. Première compilation (sans ajout de libs) pour analyser les deps
 pyinstaller --noconsole --onefile --name "$APP" "$PYFILE"
 
-# 2. Crée AppDir et copie binaire
+# 2. Analyse des dépendances natives
+ADD_BIN_ARGS=""
+for lib in $(ldd dist/$APP | awk '{print $3}' | grep -E '^/'); do
+    ADD_BIN_ARGS+=" --add-binary \"$lib:.\""
+done
+
+# 3. Rebuild complet avec libs incluses
+rm -rf build dist
+eval pyinstaller --noconsole --onefile --name "$APP" $ADD_BIN_ARGS "$PYFILE"
+
+# 4. AppDir + desktop entry
 mkdir -p AppDir/usr/bin
 cp "dist/$APP" AppDir/usr/bin/
 
-# 3. Fichier .desktop
 cat > AppDir/$APP.desktop <<EOF
 [Desktop Entry]
 Name=SCXCTL GUI
@@ -22,24 +31,18 @@ Type=Application
 Categories=Utility;
 EOF
 
-# 4. Ajoute icône si présente
 if [ -f "$ICON" ]; then
   cp "$ICON" AppDir/$APP.png
 fi
 
-# 5. Télécharge appimagetool si absent
+# 5. AppImageTool
 if [ ! -f appimagetool ]; then
   wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
   chmod +x appimagetool
 fi
 
-# 6. Crée AppImage avec nom + version
+# 6. Création finale
 OUTPUT="${APP}-${GITHUB_REF_NAME}-x86_64.AppImage"
 ./appimagetool AppDir "$OUTPUT"
 
-# 7. Déplace uniquement si le fichier n'est pas déjà à la racine
-if [ "$(dirname "$OUTPUT")" != "." ]; then
-  mv "$OUTPUT" .
-fi
-
-echo "✅ AppImage générée et prête."
+echo "✅ AppImage autonome générée : $OUTPUT"
