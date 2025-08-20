@@ -51,4 +51,9 @@ VERSION="${GITHUB_REF_NAME:-local}"
 OUTPUT="${APP}-${VERSION}-x86_64.AppImage"
 ./appimagetool AppDir "$OUTPUT"
 
+# 7. Déplace uniquement si pas déjà en racine
+if [ "$(dirname "$OUTPUT")" != "." ]; then
+    mv "$OUTPUT" .
+fi
+
 echo "✅ AppImage autonome générée : $OUTPUT"
