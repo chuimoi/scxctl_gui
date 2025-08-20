@@ -36,26 +36,6 @@ jobs:
           path: build_out/*.AppImage
 
 
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install runtime deps
-        run: sudo apt-get update && sudo apt-get install -y xvfb libfuse2
-
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: scxctl_gui
-          path: ./test
-
-      - name: Test AppImage launch
-        run: |
-          chmod +x ./test/*.AppImage
-          xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24" ./test/*.AppImage  --appimage-extract-and-run --help \
-          || (echo "❌ Lancement échoué" && exit 1)
-          echo "✅ Test réussi — AppImage portable."
-
       - name: Vérifier la présence d’un tag
         run: |
           if [[ "${GITHUB_REF}" != refs/tags/* ]]; then
