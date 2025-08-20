@@ -34,7 +34,12 @@ if [ ! -f appimagetool ]; then
 fi
 
 # 6. Crée AppImage avec nom + version
-./appimagetool AppDir "${APP}-${GITHUB_REF_NAME}-x86_64.AppImage"
+OUTPUT="${APP}-${GITHUB_REF_NAME}-x86_64.AppImage"
+./appimagetool AppDir "$OUTPUT"
 
-# 7. Déplace en racine pour upload
-mv *.AppImage .
+# 7. Déplace uniquement si le fichier n'est pas déjà à la racine
+if [ "$(dirname "$OUTPUT")" != "." ]; then
+  mv "$OUTPUT" .
+fi
+
+echo "✅ AppImage générée et prête."
