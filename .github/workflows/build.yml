@@ -1,48 +1,83 @@
-#!/bin/bash
-set -ex
+name: Build & Test Portable AppImage
 
-APP=scxctl_gui
-ICON=scxctl_gui.png
-PYFILE=scxctl_gui.py
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
 
-# 1. Build initial pour détecter les libs
-pyinstaller --noconsole --onefile --name "$APP" "$PYFILE"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
 
-# 2. Récupération automatique des libs natives
-ADD_BIN_ARGS=""
-for lib in $(ldd dist/$APP | awk '{print $3}' | grep -E '^/'); do
-    ADD_BIN_ARGS+=" --add-binary \"$lib:.\""
-done
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-# 3. Rebuild complet avec toutes les libs embarquées
-rm -rf build dist
-eval pyinstaller --noconsole --onefile --name "$APP" $ADD_BIN_ARGS "$PYFILE"
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller PyQt6
 
-# 4. Construction AppDir
-mkdir -p AppDir/usr/bin
-cp "dist/$APP" AppDir/usr/bin/
+      - name: Make build.sh executable
+        run: chmod +x build.sh
 
-cat > AppDir/$APP.desktop <<EOF
-[Desktop Entry]
-Name=SCXCTL GUI
-Exec=$APP
-Icon=$APP
-Type=Application
-Categories=Utility;
-EOF
+      - name: Run portable build script
+        run: ./build.sh
 
-if [ -f "$ICON" ]; then
-  cp "$ICON" AppDir/$APP.png
-fi
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scxctl_gui
+          path: ./*.AppImage
 
-# 5. appimagetool
-if [ ! -f appimagetool ]; then
-  wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
-  chmod +x appimagetool
-fi
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    container: debian:stable-slim
+    steps:
+      - name: Install minimal runtime deps
+        run: |
+          apt-get update
+          apt-get install -y xvfb libfuse2
 
-# 6. Création finale
-OUTPUT="${APP}-${GITHUB_REF_NAME}-x86_64.AppImage"
-./appimagetool AppDir "$OUTPUT"
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: scxctl_gui
+          path: ./test
 
-echo "✅ AppImage autonome générée : $OUTPUT"
+      - name: Test AppImage launch
+        run: |
+          chmod +x ./test/*.AppImage
+          xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24" ./test/*.AppImage --help \
+          || (echo "❌ Lancement échoué" && exit 1)
+          echo "✅ Test réussi — AppImage portable."
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: scxctl_gui
+          path: ./release
+
+      - name: Vérifier la présence d’un tag
+        run: |
+          if [[ "${GITHUB_REF}" != refs/tags/* ]]; then
+            echo "Aucun tag trouvé. Veuillez créer un tag avant la release."
+            exit 1
+          fi
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./release/*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
