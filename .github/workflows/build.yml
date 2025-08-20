@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install runtime deps
-        run: sudo apt-get update && sudo apt-get install -y xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb libfuse2
 
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -48,13 +48,12 @@ jobs:
           name: scxctl_gui
           path: ./test
 
-      - name: Test AppImage launch (no FUSE)
+      - name: Test AppImage launch
         run: |
           chmod +x ./test/*.AppImage
-          xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24" \
-            ./test/*.AppImage --appimage-extract-and-run --help \
-            || (echo "❌ Lancement échoué" && exit 1)
-          echo "✅ Test réussi — AppImage portable (sans FUSE)."
+          xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24" ./test/*.AppImage  --appimage-extract-and-run --help \
+          || (echo "❌ Lancement échoué" && exit 1)
+          echo "✅ Test réussi — AppImage portable."
 
   release:
     needs: test
