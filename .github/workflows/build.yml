@@ -38,12 +38,9 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-latest
-    container: debian:stable-slim
     steps:
-      - name: Install minimal runtime deps
-        run: |
-          apt-get update
-          apt-get install -y xvfb libfuse2
+      - name: Install runtime deps
+        run: sudo apt-get update && sudo apt-get install -y xvfb libfuse2
 
       - name: Download artifact
         uses: actions/download-artifact@v4
