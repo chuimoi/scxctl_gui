@@ -42,4 +42,4 @@ jobs:
         with:
           files: build_out/*.AppImage
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
