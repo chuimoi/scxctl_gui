@@ -19,6 +19,12 @@ for lib in $(ldd dist/$APP | awk '{print $3}' | grep -E '^/'); do
     ADD_BIN_ARGS+=" --add-binary \"$lib:.\""
 done
 
+# Forcer l’ajout de libEGL si elle n’est pas détectée
+if [ -f /usr/lib/x86_64-linux-gnu/libEGL.so.1 ]; then
+    ADD_BIN_ARGS+=" --add-binary /usr/lib/x86_64-linux-gnu/libEGL.so.1:."
+fi
+
+
 # 3. Rebuild avec libs incluses
 rm -rf build dist
 eval pyinstaller --noconsole --onefile --name "$APP" $ADD_BIN_ARGS "$PYFILE"
