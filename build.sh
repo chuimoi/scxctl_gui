@@ -46,9 +46,9 @@ if [ ! -f appimagetool ]; then
   chmod +x appimagetool
 fi
 
-# 6. Création AppImage finale
+# 6. Création AppImage finale dans un dossier séparé
+mkdir -p build_out
 VERSION="${GITHUB_REF_NAME:-local}"
-OUTPUT="${APP}-${VERSION}-x86_64.AppImage"
+OUTPUT="build_out/${APP}-${VERSION}-x86_64.AppImage"
 ./appimagetool AppDir "$OUTPUT"
-
-echo "✅ AppImage autonome générée : $OUTPUT"
+echo "✅ AppImage générée : $OUTPUT"
