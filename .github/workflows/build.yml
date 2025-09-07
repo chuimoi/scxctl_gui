@@ -1,9 +1,9 @@
-name: Build AppImage
+name: Build & Release AppImage
 
 on:
   push:
     tags:
-      - "v*.*.*"  # Se lance uniquement sur push de tags versionnés
+      - "v*.*.*"   # Se lance uniquement sur push de tags versionnés
   workflow_dispatch:  # Permet de lancer manuellement
 
 jobs:
@@ -35,3 +35,21 @@ jobs:
         with:
           name: scxctl_gui
           path: ./*.AppImage
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: scxctl_gui
+          path: ./release
+
+      - name: Create GitHub Release and upload AppImage
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./release/*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
